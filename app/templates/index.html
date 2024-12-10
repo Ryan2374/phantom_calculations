@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom Calculations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 20px;
+        }
+        h1 {
+            color: #2a5d8f;
+            text-align: center;
+            width: 100%;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .base-section, .calculation-section, .input-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        .base-section {
+            flex: 1.2;
+        }
+        label {
+            font-weight: bold;
+        }
+        button {
+            background-color: #2a5d8f;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1e4a6e;
+        }
+        .section-title {
+            color: #2a5d8f;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .output-value {
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Phantom Parts Calculations</h1>
+
+    <div class="container">
+        <!-- Base Values Section (Left) -->
+        <div class="base-section" id="baseValuesSection">
+            <div class="section-title">Initial Phantom Parts Data (Base Values)</div>
+            <div class="output-value">Main Part A: 936.5g</div>
+            <div class="output-value">Main Part B: 963.5g</div>
+            <div class="output-value">Microspheres Base (Main Parts): 9.5g</div>
+            <div class="section-title">Top Layer Parts</div>
+            <div class="output-value">Top Layer Part A: 13.4g</div>
+            <div class="output-value">Top Layer Part B: 1.6g</div>
+            <div class="output-value">Microspheres (Top Layer): 0.075g</div>
+            <div class="output-value">Polane (Top Layer): 7.5mL</div>
+            <div class="section-title">Contrast Targets</div>
+            <div class="output-value">Main Part A Contrast: 2.5g</div>
+            <div class="output-value">Main Part B Contrast: 2.5g</div>
+            <div class="output-value">Microspheres Target A: 0g</div>
+            <div class="output-value">Microspheres Target B: 0.008g</div>
+            <div class="output-value">Microspheres Target C: 0.075g</div>
+            <div class="output-value">Microspheres Target D: 0.65g</div>
+        </div>
+
+        <!-- Calculation Section (Center) -->
+        <div class="calculation-section">
+            <label for="phantoms">Enter Number of Phantoms:</label>
+            <input type="number" id="phantoms" value="1" min="1">
+            <button onclick="calculateQuantities()">Calculate</button>
+            <button onclick="clearSheet()">Clear Sheet</button>
+            <button onclick="exportToExcel()">Export</button>
+
+            <div id="calculatedResultsSection" class="results-section">
+                <!-- Calculated results displayed here -->
+            </div>
+        </div>
+
+        <!-- Input Section for Serial, Batch, and Ticket Information (Right) -->
+        <div class="input-section">
+            <div class="section-title">Serial Number</div>
+            <input type="text" id="serialNumber" placeholder="Serial Number">
+
+            <div class="section-title">Batch and Ticket Information</div>
+
+            <div class="input-group">
+                <label>Main Part A</label><br>
+                <input type="text" id="mainPartABatch" placeholder="Batch Number"><br>
+                <input type="text" id="mainPartATicket" placeholder="Ticket Number">
+            </div>
+
+            <div class="input-group">
+                <label>Main Part B</label><br>
+                <input type="text" id="mainPartBBatch" placeholder="Batch Number"><br>
+                <input type="text" id="mainPartBTicket" placeholder="Ticket Number">
+            </div>
+
+            <div class="input-group">
+                <label>Top Layer Part A</label><br>
+                <input type="text" id="topLayerABatch" placeholder="Batch Number"><br>
+                <input type="text" id="topLayerATicket" placeholder="Ticket Number">
+            </div>
+
+            <div class="input-group">
+                <label>Top Layer Part B</label><br>
+                <input type="text" id="topLayerBBatch" placeholder="Batch Number"><br>
+                <input type="text" id="topLayerBTicket" placeholder="Ticket Number">
+            </div>
+
+            <div class="input-group">
+                <label>Microspheres</label><br>
+                <input type="text" id="microspheresLot" placeholder="Lot Number"><br>
+                <input type="text" id="microspheresLotRef" placeholder="Lot Reference Number">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseQuantities = {
+            mainPartA: 936.5,
+            mainPartB: 963.5,
+            microspheresBase: 9.5,
+            topLayer: { topLayerPartA: 13.4, topLayerPartB: 1.6, microspheres: 0.075, polane: 7.5 },
+            contrastTarget: {
+                mainPartA: 2.5, mainPartB: 2.5,
+                microspheres: { targetA: 0, targetB: 0.008, targetC: 0.075, targetD: 0.65 }
+            }
+        };
+
+        function calculateQuantities() {
+            const phantomCount = parseInt(document.getElementById("phantoms").value) || 1;
+
+            const results = {
+                mainPartA: baseQuantities.mainPartA * phantomCount,
+                mainPartB: baseQuantities.mainPartB * phantomCount,
+                microspheresBase: baseQuantities.microspheresBase * phantomCount,
+                topLayerPartA: baseQuantities.topLayer.topLayerPartA * phantomCount,
+                topLayerPartB: baseQuantities.topLayer.topLayerPartB * phantomCount,
+                topLayerMicrospheres: baseQuantities.topLayer.microspheres * phantomCount,
+                topLayerPolane: baseQuantities.topLayer.polane * phantomCount,
+                contrastMainPartA: baseQuantities.contrastTarget.mainPartA * phantomCount,
+                contrastMainPartB: baseQuantities.contrastTarget.mainPartB * phantomCount,
+                microspheresTargetA: baseQuantities.contrastTarget.microspheres.targetA * phantomCount,
+                microspheresTargetB: baseQuantities.contrastTarget.microspheres.targetB * phantomCount,
+                microspheresTargetC: baseQuantities.contrastTarget.microspheres.targetC * phantomCount,
+                microspheresTargetD: baseQuantities.contrastTarget.microspheres.targetD * phantomCount
+            };
+
+            const calculatedResultsSection = document.getElementById("calculatedResultsSection");
+            calculatedResultsSection.innerHTML = `
+                <div class="section-title">Calculated Phantom Parts Data for ${phantomCount} Phantom(s):</div>
+                <div class="output-value">Main Part A (Total): ${results.mainPartA.toFixed(3)}g</div>
+                <div class="output-value">Main Part B (Total): ${results.mainPartB.toFixed(3)}g</div>
+                <div class="output-value">Microspheres Base (Total): ${results.microspheresBase.toFixed(3)}g</div>
+                <div class="section-title">Top Layer Calculations</div>
+                <div class="output-value">Top Layer Part A (Total): ${results.topLayerPartA.toFixed(3)}g</div>
+                <div class="output-value">Top Layer Part B (Total): ${results.topLayerPartB.toFixed(3)}g</div>
+                <div class="output-value">Top Layer Microspheres (Total): ${results.topLayerMicrospheres.toFixed(3)}g</div>
+                <div class="output-value">Top Layer Polane (Total): ${results.topLayerPolane.toFixed(3)}mL</div>
+                <div class="section-title">Contrast Target Calculations</div>
+                <div class="output-value">Main Part A Contrast (Total): ${results.contrastMainPartA.toFixed(3)}g</div>
+                <div class="output-value">Main Part B Contrast (Total): ${results.contrastMainPartB.toFixed(3)}g</div>
+                <div class="output-value">Microspheres Target A (Total): ${results.microspheresTargetA.toFixed(3)}g</div>
+                <div class="output-value">Microspheres Target B (Total): ${results.microspheresTargetB.toFixed(3)}g</div>
+                <div class="output-value">Microspheres Target C (Total): ${results.microspheresTargetC.toFixed(3)}g</div>
+                <div class="output-value">Microspheres Target D (Total): ${results.microspheresTargetD.toFixed(3)}g</div>
+            `;
+        }
+
+        function clearSheet() {
+            document.getElementById("phantoms").value = 1;
+            document.getElementById("serialNumber").value = "";
+            document.querySelectorAll('.input-section input').forEach(input => input.value = "");
+            document.getElementById("calculatedResultsSection").innerHTML = ""; // Clears only calculated results
+        }
+        
+            function exportToExcel() {
+                const serialNumber = document.getElementById("serialNumber").value.trim();
+                const phantomCount = parseInt(document.getElementById("phantoms").value) || 1;
+        
+                if (!serialNumber) {
+                    alert("Please enter a Serial Number before exporting.");
+                    return;
+                }
+        
+                // Collect all batch and ticket information from the right side
+                const batchTicketInfo = {
+                    serialNumber,
+                    phantomCount,
+                    mainPartABatch: document.getElementById("mainPartABatch").value.trim(),
+                    mainPartATicket: document.getElementById("mainPartATicket").value.trim(),
+                    mainPartBBatch: document.getElementById("mainPartBBatch").value.trim(),
+                    mainPartBTicket: document.getElementById("mainPartBTicket").value.trim(),
+                    topLayerABatch: document.getElementById("topLayerABatch").value.trim(),
+                    topLayerATicket: document.getElementById("topLayerATicket").value.trim(),
+                    topLayerBBatch: document.getElementById("topLayerBBatch").value.trim(),
+                    topLayerBTicket: document.getElementById("topLayerBTicket").value.trim(),
+                    microspheresLot: document.getElementById("microspheresLot").value.trim(),
+                    microspheresLotRef: document.getElementById("microspheresLotRef").value.trim()
+                };
+        
+                fetch('/download_excel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batchTicketInfo)
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `SerialNumber_${serialNumber}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                })
+                .catch(error => console.error('Error exporting Excel:', error));
+            }
+        </script>
+        
+</body>
+</html>
